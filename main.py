@@ -1,23 +1,40 @@
+import streamlit as st
 from pdf2docx import Converter
-from docx2pdf import convert
+import os
 
-def convert_my_files():
-    print("1. PDF to Word")
-    print("2. Word to PDF")
-    choice = input("Choose 1 or 2: ")
+st.set_page_config(page_title="PDF Converter", page_icon="📄")
 
-    if choice == "1":
-        pdf_name = input("Enter the PDF filename (e.g., test.pdf): ")
-        cv = Converter(pdf_name)
-        cv.convert("converted_word.docx")
-        cv.close()
-        print("Done! Check your folder for 'converted_word.docx'")
+st.title("📄 PDF to Word Converter")
+st.info("Upload a PDF file below to convert it into an editable Word document.")
+
+# File uploader widget
+uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
+
+if uploaded_file is not None:
+    # Save the uploaded file temporarily so the library can read it
+    with open("temp.pdf", "wb") as f:
+        f.write(uploaded_file.getbuffer())
     
-    elif choice == "2":
-        word_name = input("Enter the Word filename (e.g., test.docx): ")
-        convert(word_name, "converted_pdf.pdf")
-        print("Done! Check your folder for 'converted_pdf.pdf'")
+    st.success(f"Target file: {uploaded_file.name}")
 
-if __name__ == "__main__":
-    convert_my_files()
-    
+    if st.button("Start Conversion"):
+        with st.spinner("Processing... Please wait."):
+            try:
+                # Perform the conversion
+                cv = Converter("temp.pdf")
+                cv.convert("converted_result.docx")
+                cv.close()
+                
+                st.balloons() # Fun celebration!
+                st.success("Conversion Complete!")
+
+                # Provide the download button
+                with open("converted_result.docx", "rb") as file:
+                    st.download_button(
+                        label="Click here to Download Word File",
+                        data=file,
+                        file_name=f"{uploaded_file.name.split('.')[0]}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
+            except Exception as e:
+                st.error(f"An error occurred: {e}")
