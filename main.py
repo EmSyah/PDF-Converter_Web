@@ -1,40 +1,39 @@
 import streamlit as st
 from pdf2docx import Converter
+from docx2pdf import convert
 import os
 
-st.set_page_config(page_title="PDF Converter", page_icon="📄")
+st.set_page_config(page_title="Universal Converter", page_icon="🔄")
 
-st.title("📄 PDF to Word Converter")
-st.info("Upload a PDF file below to convert it into an editable Word document.")
+st.title("🔄 Universal File Converter")
 
-# File uploader widget
-uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
+# Sidebar for navigation
+mode = st.sidebar.selectbox("Select Conversion Mode", ["PDF to Word", "Word to PDF"])
 
-if uploaded_file is not None:
-    # Save the uploaded file temporarily so the library can read it
-    with open("temp.pdf", "wb") as f:
-        f.write(uploaded_file.getbuffer())
+if mode == "PDF to Word":
+    st.header("📄 PDF to Word")
+    uploaded_file = st.file_uploader("Upload PDF", type="pdf")
     
-    st.success(f"Target file: {uploaded_file.name}")
+    if uploaded_file and st.button("Convert PDF"):
+        with st.spinner("Converting..."):
+            with open("temp.pdf", "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            cv = Converter("temp.pdf")
+            cv.convert("output.docx")
+            cv.close()
+            with open("output.docx", "rb") as f:
+                st.download_button("Download Word File", f, file_name="converted.docx")
 
-    if st.button("Start Conversion"):
-        with st.spinner("Processing... Please wait."):
-            try:
-                # Perform the conversion
-                cv = Converter("temp.pdf")
-                cv.convert("converted_result.docx")
-                cv.close()
-                
-                st.balloons() # Fun celebration!
-                st.success("Conversion Complete!")
-
-                # Provide the download button
-                with open("converted_result.docx", "rb") as file:
-                    st.download_button(
-                        label="Click here to Download Word File",
-                        data=file,
-                        file_name=f"{uploaded_file.name.split('.')[0]}.docx",
-                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                    )
-            except Exception as e:
-                st.error(f"An error occurred: {e}")
+else:
+    st.header("📝 Word to PDF")
+    uploaded_file = st.file_uploader("Upload Word Document", type="docx")
+    
+    if uploaded_file and st.button("Convert Word"):
+        with st.spinner("Converting..."):
+            with open("temp.docx", "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            # Note: Word to PDF requires Microsoft Word installed on the server
+            # Free web servers often struggle with this part!
+            convert("temp.docx", "output.pdf")
+            with open("output.pdf", "rb") as f:
+                st.download_button("Download PDF File", f, file_name="converted.pdf")
