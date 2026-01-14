@@ -1,3 +1,1 @@
-streamlit
-pdf2docx
-docx2pdf
+-e "streamlit\npdf2docx\npypdf" 
