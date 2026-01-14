@@ -1,1 +1,1 @@
--e "streamlit\npdf2docx\npypdf" 
+-e "streamlit\npdf2docx\npypdf\ndocx2pdf" 
